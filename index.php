@@ -1,3 +1,33 @@
+<?php
+
+function getEndpointByToken($_endpoint, $_token)
+{
+    //Configuracion de la solicitud por cURL
+    $ch = curl_init($_endpoint);
+    //indico que tiene método de autorizacion para acceder al contenido
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer ' . $_token
+    ));
+    //indico que tiene contenido el endpoint (respuesta)
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //ejecucion de la solicitud
+    $respuesta = curl_exec($ch);
+    //verificación si existen errores
+    if ($respuesta === false) {
+        return 'Error 1: No se pudo realizar la solicitud: ' . curl_error($ch);
+    } else {
+        return $respuesta;
+    }
+}
+
+$respuestaEndpoint = getEndpointByToken('http://localhost/backend-sec70-2024t1/v1/services/', 'ciisa');
+//convertir la respuesta en un JSON
+$respuestaEndpoint = json_encode($respuestaEndpoint);
+//echo $respuestaEndpoint;
+//var_dump($respuestaEndpoint);
+
+
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -84,25 +114,25 @@
             <div id="rowServicios" class="row">
                 <div class="col-md-3">
                     <div class="card">
-                        <div class="card-header">Consultoría digital</div>
+                        <div class="card-header">Lorem Ipsum</div>
                         <div class="card-body">Identificamos las fallas y conectamos los puntos entre tu negocio y tu estrategia digital. Nuestro equipo experto cuenta con años de experiencia en la definición de estrategias y hojas de ruta en función de tus objetivos específicos.</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card">
-                        <div class="card-header">Consultoría digital</div>
+                        <div class="card-header">Lorem Ipsum</div>
                         <div class="card-body">Identificamos las fallas y conectamos los puntos entre tu negocio y tu estrategia digital. Nuestro equipo experto cuenta con años de experiencia en la definición de estrategias y hojas de ruta en función de tus objetivos específicos.</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card">
-                        <div class="card-header">Consultoría digital</div>
+                        <div class="card-header">Lorem Ipsum</div>
                         <div class="card-body">Identificamos las fallas y conectamos los puntos entre tu negocio y tu estrategia digital. Nuestro equipo experto cuenta con años de experiencia en la definición de estrategias y hojas de ruta en función de tus objetivos específicos.</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card">
-                        <div class="card-header">Consultoría digital</div>
+                        <div class="card-header">Lorem Ipsum</div>
                         <div class="card-body">Identificamos las fallas y conectamos los puntos entre tu negocio y tu estrategia digital. Nuestro equipo experto cuenta con años de experiencia en la definición de estrategias y hojas de ruta en función de tus objetivos específicos.</div>
                     </div>
                 </div>
@@ -166,29 +196,35 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-        // fetch('assets/json/servicio.json')
-        fetch('http://localhost/backend-sec70-2024t1/v1/services/', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ciisa',
-                    'Content-Type': 'application/json'
+        imprimeServicios(JSON.parse(<?php echo $respuestaEndpoint ?>));
+
+        function imprimeServicios(_datosEndpoint) {
+            // console.log(_datosEndpoint.data);
+            let cantidadData = 0;
+            _datosEndpoint.data.forEach(element => {
+                if (element.activo) {
+                    cantidadData++;
                 }
-            })
-            .then(respuesta => {
-                //.ok es una forma de simular la forma del API, por eso lo tenemos como variable
-                if (!respuesta.ok) {
-                    throw new Error('Error al recuperar');
-                }
-                return respuesta.json();
-            })
-            .then(salida => {
-                console.log(salida.data);
-                const anchoColumnas = 12 / salida.data.length;
-                const rowServicios = document.getElementById('rowServicios');
-                rowServicios.innerHTML = '';
-                salida.data.forEach(element => {
+            });
+            // const anchoColumnasXL = 12 / _datosEndpoint.data.length;
+            const anchoColumnasXL = 12 / cantidadData;
+            const anchoColumnasMD = Math.round((12 / cantidadData) * 2);
+            const anchoColumnasSM = Math.round((12 / cantidadData) * 2 * 2);
+            console.log(anchoColumnasSM);
+            // console.log(_datosEndpoint.data.length);
+            // console.log(cantidadData);
+            // console.log(anchoColumnasXL);
+            const rowServicios = document.getElementById('rowServicios');
+            rowServicios.innerHTML = '';
+            _datosEndpoint.data.forEach(element => {
+                if (element.activo) {
                     const columna = document.createElement('div');
-                    columna.classList.add('col-md-' + anchoColumnas);
+                    columna.classList.add('col-xl-' + anchoColumnasXL);
+                    columna.classList.add('col-md-' + anchoColumnasMD);
+                    columna.classList.add('col-sm-' + anchoColumnasSM);
+                    //x: horitzontal
+                    //y: vertical
+                    columna.classList.add('my-2');
                     const tarjeta = document.createElement('div');
                     tarjeta.classList.add('card');
                     const tarjetaHeader = document.createElement('div');
@@ -201,20 +237,15 @@
                     tarjetaHeader.innerText = element.titulo.esp;
                     tarjetaBody.innerText = element.texto.esp;
                     // console.log(element.texto.esp);
-                    tarjetaFooter.innerHTML = '<a href="#contacto"><button onclick="cambiaServicio(`'+element.id+'`)">Contáctanos</button></a>';
+                    tarjetaFooter.innerHTML = '<a href="#contacto"><button onclick="cambiaServicio(`' + element.id + '`)">Contáctanos</button></a>';
                     tarjeta.appendChild(tarjetaHeader);
                     tarjeta.appendChild(tarjetaBody);
                     tarjeta.appendChild(tarjetaFooter);
                     columna.appendChild(tarjeta);
                     rowServicios.appendChild(columna);
-                });
-
-                console.log('cantidad columnas: ' + anchoColumnas);
-                console.log(rowServicios);
-            })
-            .catch(error => {
-                console.error('Error al obtener: ', error);
+                }
             });
+        }
 
         function validarFormulario(_boton) {
             let validos = false;
@@ -277,7 +308,7 @@
 
         }
 
-        function cambiaServicio(_llega){
+        function cambiaServicio(_llega) {
             alert(_llega);
         }
     </script>
